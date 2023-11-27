@@ -7,8 +7,6 @@ import pandas as pd
 import numpy as np
 import sklearn
 
-
-# параметры главной страницы
 st.set_page_config(
     layout="wide",
     initial_sidebar_state="auto",
@@ -16,8 +14,6 @@ st.set_page_config(
     page_icon=":lungs:",
 )
 
-# функция для загрузки картики с диска
-# кэшируем иначе каждый раз будет загружатся заново
 @st.cache_data
 def load_image(image_path):
     image = Image.open(image_path)
@@ -26,9 +22,7 @@ def load_image(image_path):
     image.thumbnail(MAX_SIZE)
     return image
 
-# функция загрузки модели
-# кэшируем иначе каждый раз будет загружатся заново
-# @st.cache_data
+@st.cache_data
 def load_model(model_path):
     # загрузка сериализованной модели
     with open(model_path, 'rb') as f:
@@ -36,18 +30,12 @@ def load_model(model_path):
     return model
 
 
-# ------------- загрузка картинки для страницы и модели ---------
-
-# путь до картинки
 image_path = Path.cwd() / 'lungs.jpg'
 image = load_image(image_path)
 
-# путь до модели
 model_path = Path.cwd() / 'model.pkl'
 model = load_model(model_path)
 
-
-# ---------- отрисовка текста и картинки ------------------------
 st.write(
     """
     # Диагностика рака легких
@@ -55,15 +43,9 @@ st.write(
     """
 )
 
-# отрисовка картинки на странице
 st.image(image)
 
-
-# ====================== боковое меню для ввода данных ===============
-
 st.sidebar.header('Входные данные пользователя')
-
-# словарь с названиями признаков и описанием для удобства
 
 features_dict = {
     "Age": "Age",
@@ -91,7 +73,6 @@ features_dict = {
     "Snoring": "Snoring",
 }
 
-# кнопки - слайдеры для ввода дынных человека
 Age = st.sidebar.slider(features_dict['Age'], min_value=1, max_value=100, value=33, step=1)
 Gender = st.sidebar.number_input(features_dict['Gender'], min_value=1, max_value=2, value=2, step=1)
 air_pollution = st.sidebar.number_input(features_dict['air_pollution'], min_value=1, max_value=10, value=1, step=1)
@@ -116,7 +97,6 @@ frequent_cold = st.sidebar.number_input(features_dict['frequent_cold'], min_valu
 dry_cough = st.sidebar.number_input(features_dict['dry_cough'], min_value=1, max_value=10, value=2, step=1)
 Snoring = st.sidebar.number_input(features_dict['Snoring'], min_value=1, max_value=10, value=1, step=1)
 
-# записать входные данные в словарь и в датафрейм
 data = {
     'Age': Age,
     'Gender': Gender,
@@ -142,22 +122,13 @@ data = {
     'dry_cough': dry_cough,
     'Snoring': Snoring,
 }
+
 df = pd.DataFrame(data, index=[0])
 
-
-
-
-# =========== вывод входных данных и предсказания модели ==========
-
-# вывести входные данные на страницу
-st.write("## Ваши данные")
+st.write("### Ваши данные")
 st.write(df)
 
+predicted_level = model.predict(df.values)
 
-# предикт моделью входных данных, на выходе вероятность диабета
-diabetes_prob = model.predict(df.values)
-
-
-# вывести предсказание модели
-st.write("## Степень тяжести рака")
-st.write(f'{diabetes_prob}')
+st.write("### Степень тяжести рака: ")
+st.write(f'{predicted_level[0]}')
